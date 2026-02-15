@@ -1,0 +1,80 @@
+[project]
+name = "gengame-sdk"
+version = "0.1.0"
+description = "SDK for building GenGame-compatible games"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "fastapi>=0.100",
+    "uvicorn>=0.20",
+    "httpx>=0.24",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=6.0",
+    "ruff>=0.8",
+    "mypy>=1.13",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# ---------------------------------------------------------------------------
+# Pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+# ---------------------------------------------------------------------------
+# Ruff
+# ---------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "S",    # flake8-bandit (security)
+    "A",    # flake8-builtins
+    "C4",   # flake8-comprehensions
+    "SIM",  # flake8-simplify
+    "TCH",  # flake8-type-checking
+    "RUF",  # ruff-specific
+]
+ignore = [
+    "S101",    # assert used (ok in tests)
+    "S311",    # random not for crypto (expected in GA)
+    "UP007",   # Use X | Y for union
+    "A002",    # shadowing builtins
+    "RUF005",  # concatenation vs unpacking
+    "SIM108",  # ternary instead of if/else
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "B011", "N806"]
+"src/gengame_sdk/nn/**" = ["N803", "N806"]
+"src/gengame_sdk/server/**" = ["B008"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["gengame_sdk"]
+
+# ---------------------------------------------------------------------------
+# Mypy
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = false
+warn_unused_configs = true
+disallow_untyped_defs = false
+check_untyped_defs = true
+ignore_missing_imports = true
