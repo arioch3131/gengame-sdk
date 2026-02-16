@@ -146,6 +146,7 @@ def _evaluate_nn(
     opponent_mix: dict[str, float] | None = None,
     input_type: str = "board_only",
     record_games: bool = False,
+    hof_opponents: list[list[float]] | None = None,
 ) -> EvalResult:
     """
     Evaluate a neural network by playing games.
@@ -167,9 +168,25 @@ def _evaluate_nn(
     total_moves: dict[str, list[int]] = {"win": [], "loss": [], "draw": []}
     game_records: list[dict[str, Any]] = []
 
+    # Build HoF evaluators if provided
+    hof_evaluators = []
+    if hof_opponents:
+        for hof_genes in hof_opponents:
+            hof_nn = NeuralNetwork.from_flat(
+                flat=np.array(hof_genes),
+                architecture=nn.architecture,
+                activation=nn.activation,
+                output_activation=nn.output_activation,
+            )
+            hof_evaluators.append(_get_nn_evaluator(game_type, hof_nn, input_type))
+
     # Get opponent evaluators
     if opponent_mix:
-        opponents = {name: _get_evaluator(game_type, name) for name in opponent_mix}
+        opponents = {
+            name: _get_evaluator(game_type, name)
+            for name in opponent_mix
+            if name != "hall_of_fame"
+        }
     else:
         opponents = {opponent: _get_evaluator(game_type, opponent)}
         opponent_mix = {opponent: 1.0}
@@ -185,7 +202,13 @@ def _evaluate_nn(
                 chosen_opponent = opp_name
                 break
 
-        opponent_eval = opponents[chosen_opponent]
+        if chosen_opponent == "hall_of_fame" and hof_evaluators:
+            opponent_eval = random.choice(hof_evaluators)
+        elif chosen_opponent == "hall_of_fame":
+            # Fallback: pas de HoF disponible → random
+            opponent_eval = _get_evaluator(game_type, "random")
+        else:
+            opponent_eval = opponents[chosen_opponent]
 
         if is_puzzle:
             # Adversarial puzzle: both solve the same puzzle
@@ -260,6 +283,7 @@ def execute_eval_task(task: EvalTask) -> EvalResult:
             opponent_mix=task.opponent_mix,
             input_type=task.input_type,
             record_games=task.record_games,
+            hof_opponents=task.hof_opponents,
         )
 
         return result
