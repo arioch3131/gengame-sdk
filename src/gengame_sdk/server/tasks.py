@@ -65,6 +65,7 @@ class EvalTask(Task):
     num_games: int = 50
     opponent_mix: dict[str, float] | None = None
     record_games: bool = False
+    hof_opponents: list[list[float]] | None = None
 
 
 @dataclass
