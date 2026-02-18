@@ -8,7 +8,8 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from .network import Activation, NeuralNetwork
+from .activations import activation_derivative, apply_activation
+from .network import NeuralNetwork
 
 
 @dataclass
@@ -22,48 +23,6 @@ class TrainingConfig:
 class TrainingResult:
     losses: list[float] = field(default_factory=list)
     final_loss: float = 0.0
-
-
-def _softmax(z: np.ndarray) -> np.ndarray:
-    """Numerically stable softmax over last axis."""
-    exp_z = np.exp(z - np.max(z, axis=-1, keepdims=True))
-    return exp_z / np.sum(exp_z, axis=-1, keepdims=True)
-
-
-def _activation_forward(z: np.ndarray, activation: Activation) -> np.ndarray:
-    """Apply activation function (batched)."""
-    if activation == "tanh":
-        return np.tanh(z)
-    elif activation == "relu":
-        return np.maximum(0, z)
-    elif activation == "sigmoid":
-        return 1 / (1 + np.exp(-np.clip(z, -500, 500)))
-    elif activation == "leaky_relu":
-        return np.where(z > 0, z, 0.01 * z)
-    elif activation == "softmax":
-        return _softmax(z)
-    elif activation == "linear":
-        return z
-    else:
-        raise ValueError(f"Unknown activation: {activation}")
-
-
-def _activation_derivative(z: np.ndarray, activation: Activation) -> np.ndarray:
-    """Derivative of activation function with respect to z."""
-    if activation == "tanh":
-        t = np.tanh(z)
-        return 1 - t * t
-    elif activation == "relu":
-        return (z > 0).astype(np.float64)
-    elif activation == "sigmoid":
-        s = 1 / (1 + np.exp(-np.clip(z, -500, 500)))
-        return s * (1 - s)
-    elif activation == "leaky_relu":
-        return np.where(z > 0, 1.0, 0.01)
-    elif activation == "linear":
-        return np.ones_like(z)
-    else:
-        raise ValueError(f"Unknown activation for derivative: {activation}")
 
 
 def _forward_with_cache(
@@ -86,9 +45,9 @@ def _forward_with_cache(
     for i, (w, b) in enumerate(zip(nn.weights, nn.biases, strict=True)):
         z = current @ w + b
         if i == num_layers - 1:
-            a = _activation_forward(z, nn.output_activation)
+            a = apply_activation(z, nn.output_activation)
         else:
-            a = _activation_forward(z, nn.activation)
+            a = apply_activation(z, nn.activation)
         cache.append((z, a))
         current = a
 
@@ -157,7 +116,7 @@ def _backward(
     # Hidden layers (back to front)
     for i in range(num_layers - 2, -1, -1):
         # Propagate gradient through next layer's weights
-        dz = (dz @ nn.weights[i + 1].T) * _activation_derivative(cache[i][0], nn.activation)
+        dz = (dz @ nn.weights[i + 1].T) * activation_derivative(cache[i][0], nn.activation)
 
         if i > 0:
             a_prev = cache[i - 1][1]

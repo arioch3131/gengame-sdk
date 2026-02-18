@@ -1,3 +1,7 @@
+from .activations import (
+    activation_derivative,
+    apply_activation,
+)
 from .network import (
     Activation,
     InitMethod,
@@ -16,6 +20,8 @@ __all__ = [
     "NeuralNetwork",
     "TrainingConfig",
     "TrainingResult",
+    "activation_derivative",
+    "apply_activation",
     "create_network",
     "train_backprop",
 ]

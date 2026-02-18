@@ -22,7 +22,6 @@ class GamePlugin:
     game_class: type[BoardGame]
     evaluators: dict[str, Callable[[], Evaluator]]
     get_evaluator: Callable[[str], Evaluator]
-    nn_evaluator_class: type
     player_symbols: dict[int, str] = field(default_factory=dict)
     move_prompt: str = ""
 
