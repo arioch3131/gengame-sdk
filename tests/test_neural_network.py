@@ -3,9 +3,9 @@
 import numpy as np
 import pytest
 
+from gengame_sdk.nn.activations import apply_activation
 from gengame_sdk.nn.network import (
     NeuralNetwork,
-    _apply_activation,
     _initialize_weights,
     create_network,
 )
@@ -16,34 +16,34 @@ class TestActivations:
 
     def test_tanh(self):
         x = np.array([0.0, 1.0, -1.0])
-        result = _apply_activation(x, "tanh")
+        result = apply_activation(x, "tanh")
         np.testing.assert_allclose(result, np.tanh(x))
 
     def test_relu(self):
         x = np.array([-2.0, 0.0, 3.0])
-        result = _apply_activation(x, "relu")
+        result = apply_activation(x, "relu")
         np.testing.assert_array_equal(result, [0.0, 0.0, 3.0])
 
     def test_sigmoid(self):
         x = np.array([0.0])
-        result = _apply_activation(x, "sigmoid")
+        result = apply_activation(x, "sigmoid")
         assert result[0] == pytest.approx(0.5)
 
     def test_sigmoid_clip_extreme(self):
         """Sigmoid should not overflow with extreme values."""
         x = np.array([1000.0, -1000.0])
-        result = _apply_activation(x, "sigmoid")
+        result = apply_activation(x, "sigmoid")
         assert result[0] == pytest.approx(1.0)
         assert result[1] == pytest.approx(0.0)
 
     def test_leaky_relu(self):
         x = np.array([-10.0, 0.0, 5.0])
-        result = _apply_activation(x, "leaky_relu")
+        result = apply_activation(x, "leaky_relu")
         np.testing.assert_allclose(result, [-0.1, 0.0, 5.0])
 
     def test_softmax(self):
         x = np.array([1.0, 2.0, 3.0])
-        result = _apply_activation(x, "softmax")
+        result = apply_activation(x, "softmax")
         assert result.sum() == pytest.approx(1.0)
         assert all(r > 0 for r in result)
         # Order preserved
@@ -51,12 +51,12 @@ class TestActivations:
 
     def test_linear(self):
         x = np.array([1.5, -2.5])
-        result = _apply_activation(x, "linear")
+        result = apply_activation(x, "linear")
         np.testing.assert_array_equal(result, x)
 
     def test_unknown_activation(self):
         with pytest.raises(ValueError, match="Unknown activation"):
-            _apply_activation(np.array([1.0]), "unknown")
+            apply_activation(np.array([1.0]), "unknown")
 
 
 class TestInitializeWeights:
