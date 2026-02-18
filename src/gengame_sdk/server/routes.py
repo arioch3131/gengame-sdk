@@ -90,7 +90,6 @@ async def evaluate(request: EvalRequest) -> EvalResponse:
     return EvalResponse(
         success=result.success,
         error=result.error,
-        fitness=result.fitness,
         metrics=result.metrics,
         games_played=result.games_played,
         game_records=result.game_records,
@@ -124,7 +123,6 @@ async def evaluate_batch(request: BatchEvalRequest) -> BatchEvalResponse:
         EvalResponse(
             success=r.success,
             error=r.error,
-            fitness=r.fitness,
             metrics=r.metrics,
             games_played=r.games_played,
             game_records=r.game_records,

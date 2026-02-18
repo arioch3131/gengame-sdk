@@ -72,7 +72,6 @@ class EvalTask(Task):
 class EvalResult(Result):
     """Result of an evaluation task."""
 
-    fitness: float = 0.0
     metrics: dict[str, Any] = field(default_factory=dict)
     games_played: int = 0
     game_records: list[dict[str, Any]] | None = None

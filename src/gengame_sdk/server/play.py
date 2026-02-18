@@ -12,8 +12,8 @@ import uuid
 import numpy as np
 
 from gengame_sdk.nn import NeuralNetwork
+from gengame_sdk.nn_evaluator import NeuralNetworkEvaluator
 from gengame_sdk.plugin import get_game_plugin
-
 
 # Session TTL in seconds (30 minutes)
 SESSION_TTL = 30 * 60
@@ -88,7 +88,7 @@ class SessionManager:
         game = plugin.game_class()
         game.reset()
 
-        nn_evaluator = plugin.nn_evaluator_class(nn, input_type=input_type)
+        nn_evaluator = NeuralNetworkEvaluator(nn, input_type=input_type)
 
         human_player = random.choice([1, -1])
         ai_player = -human_player
