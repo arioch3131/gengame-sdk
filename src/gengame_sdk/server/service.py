@@ -9,6 +9,7 @@ import numpy as np
 
 from gengame_sdk.game import BoardGame
 from gengame_sdk.nn import NeuralNetwork
+from gengame_sdk.nn_evaluator import NeuralNetworkEvaluator
 from gengame_sdk.plugin import get_game_plugin
 
 from .tasks import EvalResult, EvalTask, MatchResult, MatchTask, SupervisedResult, SupervisedTask
@@ -24,9 +25,9 @@ def _get_game(game_type: str) -> BoardGame:
     return get_game_plugin(game_type).game_class()
 
 
-def _get_nn_evaluator(game_type: str, network, input_type: str):
-    """Factory to get a NeuralNetworkEvaluator for the given game type."""
-    return get_game_plugin(game_type).nn_evaluator_class(network, input_type=input_type)
+def _get_nn_evaluator(network, input_type: str):
+    """Create a generic NeuralNetworkEvaluator."""
+    return NeuralNetworkEvaluator(network, input_type=input_type)
 
 
 def _get_evaluator(game_type: str, name: str):
@@ -71,7 +72,7 @@ def _play_puzzle_game(
     opp_game = game.copy()
 
     # NN solves its copy
-    nn_eval = _get_nn_evaluator(game_type, nn, input_type)
+    nn_eval = _get_nn_evaluator(nn, input_type)
     _solve_puzzle(nn_eval, nn_game)
 
     # Opponent solves its copy
@@ -110,7 +111,7 @@ def _play_single_game(
         Dict with 'result' ('win', 'loss', 'draw') and 'moves' count
     """
     game.reset()
-    nn_eval = _get_nn_evaluator(game_type, nn, input_type)
+    nn_eval = _get_nn_evaluator(nn, input_type)
     moves = 0
 
     while not game.is_terminal():
@@ -178,7 +179,7 @@ def _evaluate_nn(
                 activation=nn.activation,
                 output_activation=nn.output_activation,
             )
-            hof_evaluators.append(_get_nn_evaluator(game_type, hof_nn, input_type))
+            hof_evaluators.append(_get_nn_evaluator(hof_nn, input_type))
 
     # Get opponent evaluators
     if opponent_mix:
@@ -234,9 +235,6 @@ def _evaluate_nn(
     loss_rate = results["loss"] / num_games
     draw_rate = results["draw"] / num_games
 
-    # Fitness: wins are good, draws are okay
-    fitness = win_rate + 0.5 * draw_rate
-
     metrics = {
         "win_rate": win_rate,
         "loss_rate": loss_rate,
@@ -251,7 +249,6 @@ def _evaluate_nn(
 
     return EvalResult(
         success=True,
-        fitness=fitness,
         metrics=metrics,
         games_played=num_games,
         game_records=game_records if record_games else None,
@@ -410,8 +407,8 @@ def execute_match_task(task: MatchTask) -> MatchResult:
         )
 
         p2_input_type = task.player2_input_type or task.input_type
-        eval1 = _get_nn_evaluator(task.game_type, nn1, task.input_type)
-        eval2 = _get_nn_evaluator(task.game_type, nn2, p2_input_type)
+        eval1 = _get_nn_evaluator(nn1, task.input_type)
+        eval2 = _get_nn_evaluator(nn2, p2_input_type)
 
         game = _get_game(task.game_type)
         is_puzzle = game.game_category == "puzzle"

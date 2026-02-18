@@ -34,7 +34,6 @@ class EvalResponse(BaseModel):
 
     success: bool = True
     error: str | None = None
-    fitness: float = 0.0
     metrics: dict[str, Any] = Field(default_factory=dict)
     games_played: int = 0
     game_records: list[dict[str, Any]] | None = None

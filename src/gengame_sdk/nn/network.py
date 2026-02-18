@@ -8,37 +8,11 @@ from typing import Literal
 
 import numpy as np
 
+from .activations import apply_activation
+
 # Type aliases
 InitMethod = Literal["xavier", "he", "uniform", "normal"]
 Activation = Literal["tanh", "relu", "sigmoid", "leaky_relu", "linear", "softmax"]
-
-
-def _apply_activation(x: np.ndarray, activation: Activation) -> np.ndarray:
-    """
-    Apply activation function.
-
-    Args:
-        x: Input array
-        activation: Activation function name
-
-    Returns:
-        Activated output
-    """
-    if activation == "tanh":
-        return np.tanh(x)
-    elif activation == "relu":
-        return np.maximum(0, x)
-    elif activation == "sigmoid":
-        return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
-    elif activation == "leaky_relu":
-        return np.where(x > 0, x, 0.01 * x)
-    elif activation == "softmax":
-        exp_x = np.exp(x - np.max(x))
-        return exp_x / exp_x.sum()
-    elif activation == "linear":
-        return x
-    else:
-        raise ValueError(f"Unknown activation: {activation}")
 
 
 def _initialize_weights(
@@ -158,9 +132,9 @@ class NeuralNetwork:
 
             # Use output_activation for last layer, activation for others
             if i == num_layers - 1:
-                current = _apply_activation(z, self.output_activation)
+                current = apply_activation(z, self.output_activation)
             else:
-                current = _apply_activation(z, self.activation)
+                current = apply_activation(z, self.activation)
 
         return current
 

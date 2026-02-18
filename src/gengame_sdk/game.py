@@ -115,6 +115,24 @@ class BoardGame(ABC):
         pass
 
     @abstractmethod
+    def get_input(self, player: int, input_type: str) -> list[float]:
+        """
+        Get neural network input for the given player and encoding type.
+
+        Args:
+            player: Player identifier
+            input_type: Input encoding type (e.g. 'board_only', 'positional', 'board_flat')
+
+        Returns:
+            Input vector for the neural network
+        """
+        pass
+
+    def get_available_input_types(self) -> list[str]:
+        """Return the list of supported input encoding types for this game."""
+        return ["default"]
+
+    @abstractmethod
     def copy(self) -> "BoardGame":
         """
         Create a deep copy of the game.
